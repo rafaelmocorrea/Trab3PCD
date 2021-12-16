@@ -80,16 +80,18 @@ int main(int argc, char **argv) {
   tamLocal = N/noProcesses;
   init = processId*tamLocal;
 
-  if (processId + 1 > noProcesses - 1) {
-    vizinho_inferior = 0;
-  } else {
-    vizinho_inferior = processId + 1;
-  }
+  if (noProcesses > 1){
+    if (processId + 1 > noProcesses - 1) {
+      vizinho_inferior = 0;
+    } else {
+      vizinho_inferior = processId + 1;
+    }
 
-  if (processId - 1 < 0) {
-    vizinho_superior = noProcesses - 1;
-  } else {
-    vizinho_superior = processId - 1;
+    if (processId - 1 < 0) {
+      vizinho_superior = noProcesses - 1;
+    } else {
+      vizinho_superior = processId - 1;
+    }
   }
 
   grid = (int *) malloc (tamLocal * N * sizeof(int));
@@ -170,19 +172,19 @@ int main(int argc, char **argv) {
     }
 
     // troca de mensagens das linhas de borda
-
-    if (processId % 2 == 0) {
-      MPI_Send(msg_inferior, N, MPI_INT, vizinho_inferior, 1, MPI_COMM_WORLD);
-      MPI_Send(msg_superior, N, MPI_INT, vizinho_superior, 1, MPI_COMM_WORLD);
-      MPI_Recv(buff_superior, N, MPI_INT, vizinho_superior, 1, MPI_COMM_WORLD, &status);
-      MPI_Recv(buff_inferior, N, MPI_INT, vizinho_inferior, 1, MPI_COMM_WORLD, &status);
-    } else {
-      MPI_Recv(buff_superior, N, MPI_INT, vizinho_superior, 1, MPI_COMM_WORLD, &status);
-      MPI_Recv(buff_inferior, N, MPI_INT, vizinho_inferior, 1, MPI_COMM_WORLD, &status);
-      MPI_Send(msg_inferior, N, MPI_INT, vizinho_inferior, 1, MPI_COMM_WORLD);
-      MPI_Send(msg_superior, N, MPI_INT, vizinho_superior, 1, MPI_COMM_WORLD);
+    if (noProcesses > 1){
+      if (processId % 2 == 0) {
+        MPI_Send(msg_inferior, N, MPI_INT, vizinho_inferior, 1, MPI_COMM_WORLD);
+        MPI_Send(msg_superior, N, MPI_INT, vizinho_superior, 1, MPI_COMM_WORLD);
+        MPI_Recv(buff_superior, N, MPI_INT, vizinho_superior, 1, MPI_COMM_WORLD, &status);
+        MPI_Recv(buff_inferior, N, MPI_INT, vizinho_inferior, 1, MPI_COMM_WORLD, &status);
+      } else {
+        MPI_Recv(buff_superior, N, MPI_INT, vizinho_superior, 1, MPI_COMM_WORLD, &status);
+        MPI_Recv(buff_inferior, N, MPI_INT, vizinho_inferior, 1, MPI_COMM_WORLD, &status);
+        MPI_Send(msg_inferior, N, MPI_INT, vizinho_inferior, 1, MPI_COMM_WORLD);
+        MPI_Send(msg_superior, N, MPI_INT, vizinho_superior, 1, MPI_COMM_WORLD);
+      }
     }
-
     // executa o jogo
     for (int k = 0; k < tamLocal; k++) {
       for (int l = 0; l < N; l ++) {
